@@ -1,43 +1,133 @@
 # DockerMedic
 
-> Portable agent for detecting projects without a recognizable Dockerfile.
+> A portable engineering agent for **container configuration**.
 
-## What it does
+DockerMedic inspects observable project evidence, detects **missing Dockerfile**, and produces an explainable improvement plan. Its purpose is not to replace specialist tooling. It provides a focused, auditable diagnostic layer that can travel across agent runtimes.
 
-DockerMedic checks project structure for a Dockerfile and reports when one is absent. It is designed for repositories where containerization may be part of the intended delivery path.
+## What makes it different
 
-### Diagnostic fingerprint
-
-**Container artifact discovery → packaging signal → evidence → next action**
-
-## Why this agent is distinct
-
-DockerMedic does not assume that every project needs containers. It reports a missing Dockerfile as a diagnostic condition and frames the recommendation as conditional on container deployment needs.
-
-## Workflow
+This project follows an **evidence → decision → explanation** model:
 
 ```text
 Project
-   ↓
-Dockerfile detector
-   ↓
-Containerization rule
-   ↓
-Evidence
-   ↓
-Conditional improvement plan
+  ↓
+Scanner
+  ↓
+Domain Evidence
+  ↓
+Deterministic Diagnostic Rule
+  ↓
+Finding + Evidence + Confidence
+  ↓
+Improvement Plan
 ```
+
+The agent does not invent evidence. A finding is tied to what the scanner can actually observe.
+
+## Diagnostic contract
+
+| Layer | DockerMedic behavior |
+| --- | --- |
+| Domain | container configuration |
+| Primary signal | Dockerfile and container files |
+| Remediation | Add a Dockerfile when container deployment is intended |
+| Output | Structured, explainable findings |
+| Uncertainty | Explicitly constrained by available evidence |
+
+## Portable architecture
+
+```text
+                    ┌─────────────────────┐
+                    │   Portable Agent    │
+                    │ identity + behavior  │
+                    └──────────┬──────────┘
+                               │
+              ┌────────────────┼────────────────┐
+              ↓                ↓                ↓
+          Diagnostic        Duties &         Explainability
+            Logic           Workflow           Contract
+              │
+              ↓
+        Runtime Adapters
+       ┌──────┬──────┬──────┬──────┐
+       ↓      ↓      ↓      ↓
+    OpenAI  CrewAI  Claude  Lyzr
+```
+
+The core diagnostic logic is kept separate from framework-specific adapters. This is the central design idea of the project, not four copies of the same agent wearing different hats.
+
+## Repository structure
+
+```text
+agent.yaml          # Portable identity and passport metadata
+SOUL.md             # Identity, principles, and behavior
+AGENTS.md           # Agent responsibilities
+DUTIES.md           # Maker / Checker workflow
+EXPLAINABILITY.md   # Decision, inputs, limits, and evidence contract
+core/               # Shared result model
+tools/              # Scanner and domain diagnostics
+skills/             # Declared capabilities
+workflows/          # Agent workflows
+adapters/           # Runtime-facing adapters
+tests/              # Deliberately diagnostic project fixtures
+```
+
+## Passport portability
+
+The agent is structured for the OpenGAP passport model and can be exported to:
+
+- OpenAI Agents SDK
+- CrewAI
+- Claude Code
+- Lyzr
+
+The important part is the **portable contract**: identity, behavior, duties, explainability, tools, and skills remain defined independently of a single runtime.
 
 ## Verification
 
-The repository includes an OpenGAP passport, Docker-focused fixture coverage, four framework portability adapters, explainability contracts, and automated adapter tests.
+The repository includes:
 
-OpenGAP validation passed and all four generated framework exports have been exercised successfully.
+- Local adapter verification
+- A domain-specific broken-project fixture
+- OpenGAP-compatible passport metadata
+- Explainability requirements
+- Export verification across the supported targets
 
-## Design principle
+The engineering workflow is:
 
-**Recommendations respect context.** DockerMedic separates observable absence from the assumption that Docker is mandatory.
+```text
+Validate passport
+    → Verify adapters
+    → Run diagnostic fixture
+    → Export with OpenGAP
+    → Inspect generated artifacts
+```
 
-## Medic family
+## Scope and limitations
 
-DockerMedic is the containerization-focused member of a portable engineering-agent family.
+DockerMedic is a focused diagnostic prototype. Its conclusions are limited to the evidence and rules implemented in this repository. It should complement, not replace, production-grade static analysis, security scanners, observability platforms, CI systems, or human review where appropriate.
+
+## Why this project exists
+
+This repository is one member of a deliberately modular **Medic agent family**. Each agent applies the same portable passport architecture to a different engineering failure surface.
+
+That makes the collection useful as an interoperability experiment:
+
+```text
+One passport architecture
+        +
+Different diagnostic domains
+        +
+Multiple agent runtimes
+        =
+Portable engineering-agent family
+```
+
+## Challenge context
+
+Built for the **HiDevs × Lyzr Agent Passport Challenge**, exploring portable agent identity, behavior contracts, explainability, verification, and framework interoperability.
+
+## Author
+
+**Jofil Joby**  
+[GitHub](https://github.com/Jofil-Joby)
